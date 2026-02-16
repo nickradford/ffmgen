@@ -39,7 +39,7 @@ export function HomeContent() {
     saveHistory(history, HISTORY_STORAGE_KEY)
   }, [history])
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, setMessages } = useChat({
     transport,
     onFinish: ({ message }) => {
       const text =
@@ -99,6 +99,12 @@ export function HomeContent() {
     [sendMessage, setQuery]
   )
 
+  const handleClear = useCallback(() => {
+    setQuery("")
+    setInput("")
+    setMessages([])
+  }, [setQuery, setMessages])
+
   const handleDownvote = useCallback((downvotedQuery: string, downvotedCommand: string) => {
     console.log("Downvote received:", { query: downvotedQuery, command: downvotedCommand })
     setHistory((prev) =>
@@ -119,10 +125,7 @@ export function HomeContent() {
         <header className="flex flex-col items-center gap-4 mb-10">
           <Link
             href="/"
-            onClick={() => {
-              setQuery("")
-              setInput("")
-            }}
+            onClick={handleClear}
             className="flex flex-col items-center gap-4 group"
           >
             <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 group-hover:bg-primary/15 transition-colors">
@@ -150,10 +153,7 @@ export function HomeContent() {
             onSubmit={handleSubmit}
             isLoading={isLoading}
             hasCommand={!!currentCommand}
-            onClear={() => {
-              setInput("")
-              setQuery("")
-            }}
+            onClear={handleClear}
           />
           {error && (
             <p className="mt-2 text-sm text-destructive" role="alert">
