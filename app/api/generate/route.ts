@@ -5,13 +5,23 @@ import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 
 function getTextFromMessages(
   messages: Array<{ role: string; parts?: Array<{ type: string; text?: string }> }>,
-): string {
+): { text: string; downvotedCommand?: string } {
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
-  if (!lastUser?.parts) return "";
-  return lastUser.parts
+  if (!lastUser?.parts) return { text: "" };
+  const text = lastUser.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
     .map((p) => p.text)
     .join("");
+  
+  // Check for downvoted command marker
+  const downvoteMatch = text.match(/\[DOWNVOTED:(.+?)\]$/);
+  if (downvoteMatch) {
+    return {
+      text: text.replace(/\[DOWNVOTED:(.+?)\]$/, "").trim(),
+      downvotedCommand: downvoteMatch[1],
+    };
+  }
+  return { text };
 }
 
 const openrouter = createOpenRouter({
@@ -45,7 +55,7 @@ export async function POST(req: Request) {
 
   const { messages } = await req.json();
 
-  const rawPrompt = getTextFromMessages(messages);
+  const { text: rawPrompt, downvotedCommand } = getTextFromMessages(messages);
   const { valid, sanitized, reason } = sanitizePrompt(rawPrompt);
 
   if (!valid) {
@@ -55,7 +65,8 @@ export async function POST(req: Request) {
       start(controller) {
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ type: "error", error: { message: reason } })}\n\n`,
+            `data: ${JSON.stringify({ type: "error", error: { message: reason } })}
+\n\n`,
           ),
         );
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -67,9 +78,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const result = streamText({
-    model: openrouter.chat(process.env.MODEL || "z-ai/glm-4.5-air:free"),
-    system: `You are an ffmpeg command generator. Your ONLY function is to convert a description of a video or audio processing task into ffmpeg command(s).
+  let systemPrompt = `You are an ffmpeg command generator. Your ONLY function is to convert a description of a video or audio processing task into ffmpeg command(s).
 
 STRICT RULES — you MUST follow ALL of these:
 - Output ONLY valid ffmpeg command(s), one per line
@@ -80,7 +89,15 @@ STRICT RULES — you MUST follow ALL of these:
 - Use "input.mp4" as the default input unless a format is mentioned
 - Use "output" as the base output filename with the appropriate extension
 - Use best-practice codecs, CRF values, and presets
-- Include -y (overwrite) when appropriate`,
+- Include -y (overwrite) when appropriate`;
+
+  if (downvotedCommand) {
+    systemPrompt += `\n\nIMPORTANT: The user has downvoted this previous command as incorrect. DO NOT generate the exact same command:\n${downvotedCommand}\n\nGenerate a DIFFERENT command that achieves the same goal.`;
+  }
+
+  const result = streamText({
+    model: openrouter.chat(process.env.MODEL || "z-ai/glm-4.5-air:free"),
+    system: systemPrompt,
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 500,
     temperature: 0.2,

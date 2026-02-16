@@ -1,14 +1,18 @@
 "use client";
 
-import { CheckIcon, CopyIcon, TerminalIcon } from "@phosphor-icons/react";
+import { CheckIcon, CopyIcon, TerminalIcon, ThumbsDownIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 export function CommandDisplay({
   command,
   isStreaming,
+  query,
+  onDownvote,
 }: {
   command: string;
   isStreaming: boolean;
+  query: string;
+  onDownvote?: (query: string, command: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -28,23 +32,33 @@ export function CommandDisplay({
           <span className="text-sm font-medium">Generated Command</span>
         </div>
         {command && !isStreaming && (
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-            aria-label="Copy command to clipboard"
-          >
-            {copied ? (
-              <>
-                <CheckIcon className="size-4 text-primary" />
-                <span className="text-primary">Copied</span>
-              </>
-            ) : (
-              <>
-                <CopyIcon className="size-4" />
-                <span>Copy</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onDownvote?.(query, command)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              aria-label="Downvote this command"
+            >
+              <ThumbsDownIcon className="size-4" />
+              <span>Not good</span>
+            </button>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              aria-label="Copy command to clipboard"
+            >
+              {copied ? (
+                <>
+                  <CheckIcon className="size-4 text-primary" />
+                  <span className="text-primary">Copied</span>
+                </>
+              ) : (
+                <>
+                  <CopyIcon className="size-4" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
       <div className="relative rounded-lg border border-border bg-card p-4 overflow-x-auto">

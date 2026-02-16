@@ -4,6 +4,7 @@ import {
   CheckIcon,
   ClockIcon,
   CopyIcon,
+  ThumbsDownIcon,
   TrashIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -14,6 +15,7 @@ export interface HistoryEntry {
   prompt: string;
   command: string;
   timestamp: Date;
+  downvoted?: boolean;
 }
 
 const MAX_VISIBLE = 5;
@@ -87,6 +89,9 @@ function HistoryItem({
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{entry.prompt}</p>
         <div className="flex items-center gap-1">
+          {entry.downvoted && (
+            <ThumbsDownIcon className="size-3.5 text-red-500" />
+          )}
           {onDelete && (
             <button
               onClick={() => onDelete(entry.id)}

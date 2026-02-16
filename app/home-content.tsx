@@ -99,6 +99,20 @@ export function HomeContent() {
     [sendMessage, setQuery]
   )
 
+  const handleDownvote = useCallback((downvotedQuery: string, downvotedCommand: string) => {
+    console.log("Downvote received:", { query: downvotedQuery, command: downvotedCommand })
+    setHistory((prev) =>
+      prev.map((entry) =>
+        entry.prompt === downvotedQuery && entry.command === downvotedCommand
+          ? { ...entry, downvoted: true }
+          : entry
+      )
+    )
+    // Trigger regeneration with the downvoted command as context
+    lastPromptRef.current = downvotedQuery
+    sendMessage({ text: `${downvotedQuery} [DOWNVOTED:${downvotedCommand}]` })
+  }, [sendMessage])
+
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-12 md:py-20">
       <div className="w-full max-w-2xl flex flex-col items-center">
@@ -161,6 +175,8 @@ export function HomeContent() {
           <CommandDisplay
             command={currentCommand}
             isStreaming={status === "streaming"}
+            query={query}
+            onDownvote={handleDownvote}
           />
         </section>
 

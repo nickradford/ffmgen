@@ -1,12 +1,13 @@
 import type { HistoryEntry } from "@/components/command-history"
 
-const HISTORY_SCHEMA_VERSION = 1
+const HISTORY_SCHEMA_VERSION = 2
 
 interface SerializedEntry {
   id: string
   prompt: string
   command: string
   timestamp: string
+  downvoted?: boolean
 }
 
 interface StoredHistory {
@@ -20,6 +21,7 @@ function serializeEntry(entry: HistoryEntry): SerializedEntry {
     prompt: entry.prompt,
     command: entry.command,
     timestamp: entry.timestamp.toISOString(),
+    downvoted: entry.downvoted,
   }
 }
 
@@ -29,6 +31,7 @@ function deserializeEntry(entry: SerializedEntry): HistoryEntry {
     prompt: entry.prompt,
     command: entry.command,
     timestamp: new Date(entry.timestamp),
+    downvoted: entry.downvoted,
   }
 }
 
@@ -39,7 +42,8 @@ function validateEntry(entry: unknown): entry is SerializedEntry {
     typeof e.id === "string" &&
     typeof e.prompt === "string" &&
     typeof e.command === "string" &&
-    typeof e.timestamp === "string"
+    typeof e.timestamp === "string" &&
+    (e.downvoted === undefined || typeof e.downvoted === "boolean")
   )
 }
 
