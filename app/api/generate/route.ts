@@ -1,71 +1,49 @@
-import { streamText, convertToModelMessages } from "ai"
-import { getCachedCommand, setCachedCommand } from "@/lib/prompt-cache"
-import { sanitizePrompt } from "@/lib/sanitize"
+import { streamText, convertToModelMessages } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { sanitizePrompt } from "@/lib/sanitize";
 
-function getTextFromMessages(messages: Array<{ role: string; parts?: Array<{ type: string; text?: string }> }>): string {
-  const lastUser = [...messages].reverse().find((m) => m.role === "user")
-  if (!lastUser?.parts) return ""
+function getTextFromMessages(
+  messages: Array<{ role: string; parts?: Array<{ type: string; text?: string }> }>,
+): string {
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  if (!lastUser?.parts) return "";
   return lastUser.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
     .map((p) => p.text)
-    .join("")
+    .join("");
 }
 
-export async function POST(req: Request) {
-  const { messages } = await req.json()
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
-  const rawPrompt = getTextFromMessages(messages)
-  const { valid, sanitized, reason } = sanitizePrompt(rawPrompt)
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const rawPrompt = getTextFromMessages(messages);
+  const { valid, sanitized, reason } = sanitizePrompt(rawPrompt);
 
   if (!valid) {
     // Return an error as a streamed text response so the UI handles it normally
-    const encoder = new TextEncoder()
+    const encoder = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", error: { message: reason } })}\n\n`))
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"))
-        controller.close()
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ type: "error", error: { message: reason } })}\n\n`,
+          ),
+        );
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
       },
-    })
+    });
     return new Response(stream, {
       headers: { "Content-Type": "text/event-stream" },
-    })
-  }
-
-  // Check cache for identical prompt
-  const cached = getCachedCommand(sanitized)
-  if (cached) {
-    // Stream the cached response using SSE format matching toUIMessageStreamResponse
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      start(controller) {
-        // Send start
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "start" })}\n\n`))
-        // Send the cached text in chunks to simulate streaming
-        const chunkSize = 20
-        for (let i = 0; i < cached.length; i += chunkSize) {
-          const chunk = cached.slice(i, i + chunkSize)
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "text-delta", delta: chunk })}\n\n`)
-          )
-        }
-        // Send finish
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "finish", finishReason: "stop" })}\n\n`))
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"))
-        controller.close()
-      },
-    })
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    })
+    });
   }
 
   const result = streamText({
-    model: "openai/gpt-4.1-mini",
+    model: openrouter.chat(process.env.MODEL || "z-ai/glm-4.5-air:free"),
     system: `You are an ffmpeg command generator. Your ONLY function is to convert a description of a video or audio processing task into ffmpeg command(s).
 
 STRICT RULES — you MUST follow ALL of these:
@@ -81,12 +59,7 @@ STRICT RULES — you MUST follow ALL of these:
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 500,
     temperature: 0.2,
-    onFinish: ({ text }) => {
-      if (text.trim() && !text.includes("# Not a valid ffmpeg task")) {
-        setCachedCommand(sanitized, text.trim())
-      }
-    },
-  })
+  });
 
-  return result.toUIMessageStreamResponse()
+  return result.toUIMessageStreamResponse();
 }

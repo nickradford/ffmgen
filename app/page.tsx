@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
-import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { PromptInput } from "@/components/prompt-input"
 import { CommandDisplay } from "@/components/command-display"
 import { ExampleChips } from "@/components/example-chips"
@@ -11,12 +11,33 @@ import { Terminal } from "lucide-react"
 import { sanitizePrompt } from "@/lib/sanitize"
 
 const transport = new DefaultChatTransport({ api: "/api/generate" })
+const HISTORY_STORAGE_KEY = "ffmgen-command-history"
 
 export default function Home() {
   const [input, setInput] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const lastPromptRef = useRef("")
+
+  useEffect(() => {
+    const stored = localStorage.getItem(HISTORY_STORAGE_KEY)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        const withDates = parsed.map((entry: HistoryEntry) => ({
+          ...entry,
+          timestamp: new Date(entry.timestamp),
+        }))
+        setHistory(withDates)
+      } catch {
+        console.error("Failed to parse history from localStorage")
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history))
+  }, [history])
 
   const { messages, sendMessage, status } = useChat({
     transport,
