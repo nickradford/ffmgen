@@ -1,15 +1,15 @@
-import type { Metadata, Viewport } from "next"
-import Script from "next/script"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import { NuqsAdapter } from "nuqs/adapters/next"
-import { ThemeProvider } from "@/components/theme-provider"
+import type { Metadata, Viewport } from "next";
+import Script from "next/script";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { NuqsAdapter } from "nuqs/adapters/next";
+import { ThemeProvider } from "@/components/theme-provider";
 
-import "./globals.css"
+import "./globals.css";
 
-const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
+const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "ffmgen - Generate FFmpeg Commands with AI",
@@ -28,19 +28,19 @@ export const metadata: Metadata = {
       "Describe what you want to do with your video or audio and get the exact ffmpeg command. Powered by AI.",
     images: ["/ffmgen-banner.png"],
   },
-}
+};
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -52,7 +52,9 @@ export default function RootLayout({
           data-domains="ffmgen.nickradford.dev"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased focus:ring-ring`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -65,5 +67,5 @@ export default function RootLayout({
         <SpeedInsights />
       </body>
     </html>
-  )
+  );
 }

@@ -12,19 +12,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DevicesIcon, CheckIcon, MoonStarsIcon, SunIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const iconClasses = cn("group-hover:rotate-15 transition-transform will-change-transform");
-  const Icon = {
+  const iconMap = {
     light: SunIcon,
     dark: MoonStarsIcon,
     system: DevicesIcon,
-    null: () => <></>,
-  }[theme ?? "null"];
+  };
+  const Icon = mounted ? iconMap[(theme as keyof typeof iconMap) ?? "system"] : DevicesIcon;
 
-  const checkIcon = <CheckIcon className="ml-auto h-4 w-4 text-primary" weight="bold" />;
+  const checkIcon = (
+    <CheckIcon
+      className="ml-auto h-4 w-4 text-primary group-hover:text-primary-foreground group-focus:text-primary-foreground transition-colors"
+      weight="bold"
+    />
+  );
 
   return (
     <DropdownMenu>
@@ -35,15 +46,15 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => setTheme("light")} className="group">
           Light
           {theme === "light" && checkIcon}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="group">
           Dark
           {theme === "dark" && checkIcon}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => setTheme("system")} className="group">
           System
           {theme === "system" && checkIcon}
         </DropdownMenuItem>

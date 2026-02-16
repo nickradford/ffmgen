@@ -61,7 +61,7 @@ export function PromptInput({
         <button
           onClick={handleClick}
           disabled={(!value.trim() && !showClear) || isLoading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:bg-primary/50 disabled:cursor-not-allowed"
+          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:bg-primary/50 disabled:cursor-not-allowed outline-offset-4"
           aria-label={showClear ? "Clear prompt" : "Generate command"}
         >
           {isLoading ? (
