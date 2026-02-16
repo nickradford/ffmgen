@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 const EXAMPLES = [
   "Convert MKV to MP4",
   "Compress video to reduce file size",
@@ -13,6 +15,8 @@ const EXAMPLES = [
   "Resize to 720p",
 ]
 
+const VISIBLE_COUNT = 5
+
 export function ExampleChips({
   onSelect,
   disabled,
@@ -20,9 +24,13 @@ export function ExampleChips({
   onSelect: (example: string) => void
   disabled: boolean
 }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const visibleExamples = isExpanded ? EXAMPLES : EXAMPLES.slice(0, VISIBLE_COUNT)
+  const hasMore = EXAMPLES.length > VISIBLE_COUNT
+
   return (
     <div className="flex flex-wrap justify-center gap-2">
-      {EXAMPLES.map((example) => (
+      {visibleExamples.map((example) => (
         <button
           key={example}
           onClick={() => onSelect(example)}
@@ -32,6 +40,15 @@ export function ExampleChips({
           {example}
         </button>
       ))}
+      {hasMore && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          disabled={disabled}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isExpanded ? "...less" : "...more"}
+        </button>
+      )}
     </div>
   )
 }

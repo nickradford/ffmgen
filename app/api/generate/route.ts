@@ -1,6 +1,7 @@
 import { streamText, convertToModelMessages } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { sanitizePrompt } from "@/lib/sanitize";
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 
 function getTextFromMessages(
   messages: Array<{ role: string; parts?: Array<{ type: string; text?: string }> }>,
@@ -18,6 +19,30 @@ const openrouter = createOpenRouter({
 });
 
 export async function POST(req: Request) {
+  // Check rate limit
+  const clientId = getClientIdentifier(req);
+  const rateLimitResult = checkRateLimit(clientId);
+  
+  if (!rateLimitResult.success) {
+    const retryAfterSeconds = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
+    return new Response(
+      JSON.stringify({
+        error: "Rate limit exceeded",
+        retryAfter: retryAfterSeconds,
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "X-RateLimit-Limit": rateLimitResult.limit.toString(),
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+          "X-RateLimit-Reset": Math.ceil(rateLimitResult.resetTime / 1000).toString(),
+          "Retry-After": retryAfterSeconds.toString(),
+        },
+      }
+    );
+  }
+
   const { messages } = await req.json();
 
   const rawPrompt = getTextFromMessages(messages);
