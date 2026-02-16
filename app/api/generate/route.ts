@@ -12,7 +12,7 @@ function getTextFromMessages(
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
     .map((p) => p.text)
     .join("");
-  
+
   // Check for downvoted command marker
   const downvoteMatch = text.match(/\[DOWNVOTED:(.+?)\]$/);
   if (downvoteMatch) {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   // Check rate limit
   const clientId = getClientIdentifier(req);
   const rateLimitResult = checkRateLimit(clientId);
-  
+
   if (!rateLimitResult.success) {
     const retryAfterSeconds = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
     return new Response(
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
           "X-RateLimit-Reset": Math.ceil(rateLimitResult.resetTime / 1000).toString(),
           "Retry-After": retryAfterSeconds.toString(),
         },
-      }
+      },
     );
   }
 
@@ -89,6 +89,7 @@ STRICT RULES — you MUST follow ALL of these:
 - Use "input.mp4" as the default input unless a format is mentioned
 - Use "output" as the base output filename with the appropriate extension
 - Use best-practice codecs, CRF values, and presets
+- Use idiomatic ffmpeg commands and only essential flags unless asked
 - Include -y (overwrite) when appropriate`;
 
   if (downvotedCommand) {
