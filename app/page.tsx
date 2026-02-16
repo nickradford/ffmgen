@@ -8,11 +8,13 @@ import { CommandDisplay } from "@/components/command-display"
 import { ExampleChips } from "@/components/example-chips"
 import { CommandHistory, type HistoryEntry } from "@/components/command-history"
 import { Terminal } from "lucide-react"
+import { sanitizePrompt } from "@/lib/sanitize"
 
 const transport = new DefaultChatTransport({ api: "/api/generate" })
 
 export default function Home() {
   const [input, setInput] = useState("")
+  const [error, setError] = useState<string | null>(null)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const lastPromptRef = useRef("")
 
@@ -54,12 +56,19 @@ export default function Home() {
 
   const handleSubmit = useCallback(() => {
     if (!input.trim() || isLoading) return
-    lastPromptRef.current = input.trim()
-    sendMessage({ text: input.trim() })
+    const { valid, sanitized, reason } = sanitizePrompt(input)
+    if (!valid) {
+      setError(reason ?? "Invalid input.")
+      return
+    }
+    setError(null)
+    lastPromptRef.current = sanitized
+    sendMessage({ text: sanitized })
   }, [input, isLoading, sendMessage])
 
   const handleExampleSelect = useCallback(
     (example: string) => {
+      setError(null)
       setInput(example)
       lastPromptRef.current = example
       sendMessage({ text: example })
@@ -76,8 +85,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground text-balance">
-              ffmpeg
-              <span className="text-primary">.ai</span>
+              ffm<span className="text-primary">gen</span>
             </h1>
             <p className="mt-2 text-muted-foreground text-sm md:text-base max-w-md text-pretty">
               Describe what you want to do with your video or audio.
@@ -89,10 +97,18 @@ export default function Home() {
         <section className="w-full mb-6" aria-label="Command input">
           <PromptInput
             value={input}
-            onChange={setInput}
+            onChange={(v) => {
+              setInput(v)
+              if (error) setError(null)
+            }}
             onSubmit={handleSubmit}
             isLoading={isLoading}
           />
+          {error && (
+            <p className="mt-2 text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          )}
         </section>
 
         {!currentCommand && !isLoading && (
