@@ -76,8 +76,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground text-balance">
-              ffmpeg
-              <span className="text-primary">.ai</span>
+              ffm<span className="text-primary">gen</span>
             </h1>
             <p className="mt-2 text-muted-foreground text-sm md:text-base max-w-md text-pretty">
               Describe what you want to do with your video or audio.
