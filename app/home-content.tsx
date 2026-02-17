@@ -8,6 +8,7 @@ import { PromptInput } from "@/components/prompt-input"
 import { CommandDisplay } from "@/components/command-display"
 import { ExampleChips } from "@/components/example-chips"
 import { CommandHistory, type HistoryEntry } from "@/components/command-history"
+import { ModeToggle } from "@/components/mode-toggle"
 import { TerminalIcon } from "@phosphor-icons/react"
 import Link from "next/link"
 import { sanitizePrompt } from "@/lib/sanitize"
@@ -122,6 +123,10 @@ export function HomeContent() {
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-12 md:py-20">
       <div className="w-full max-w-2xl flex flex-col items-center">
+        <div className="fixed top-4 right-4 z-50">
+          <ModeToggle />
+        </div>
+
         <header className="flex flex-col items-center gap-4 mb-10">
           <Link
             href="/"

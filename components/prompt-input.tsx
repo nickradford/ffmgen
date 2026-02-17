@@ -46,7 +46,7 @@ export function PromptInput({
 
   return (
     <div className="relative w-full">
-      <div className="relative rounded-xl border border-border bg-card shadow-lg shadow-background/50 transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+      <div className="relative rounded-xl border border-border bg-card shadow-lg shadow-background/50 transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/75">
         <input
           ref={inputRef}
           autoFocus
@@ -61,15 +61,15 @@ export function PromptInput({
         <button
           onClick={handleClick}
           disabled={(!value.trim() && !showClear) || isLoading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:bg-primary/50 disabled:cursor-not-allowed outline-offset-4"
           aria-label={showClear ? "Clear prompt" : "Generate command"}
         >
           {isLoading ? (
-            <SpinnerIcon className="h-4 w-4 animate-spin" />
+            <SpinnerIcon className="h-4 w-4 animate-spin" weight="bold" />
           ) : showClear ? (
-            <XIcon className="h-4 w-4" />
+            <XIcon className="h-4 w-4" weight="bold" />
           ) : (
-            <ArrowRightIcon className="h-4 w-4" />
+            <ArrowRightIcon className="h-4 w-4" weight="bold" />
           )}
         </button>
       </div>

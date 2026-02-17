@@ -9,6 +9,12 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface HistoryEntry {
   id: string;
@@ -86,33 +92,52 @@ function HistoryItem({
 
   return (
     <div className="rounded-lg border border-border bg-card/50 p-3 group">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{entry.prompt}</p>
-        <div className="flex items-center gap-1">
-          {entry.downvoted && (
-            <ThumbsDownIcon className="size-3.5 text-red-500" />
-          )}
-          {onDelete && (
-            <button
-              onClick={() => onDelete(entry.id)}
-              className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-secondary"
-              aria-label="Delete entry"
-            >
-              <TrashIcon className="size-3.5 text-muted-foreground" />
-            </button>
-          )}
-          <button
-            onClick={handleCopy}
-            className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-secondary"
-            aria-label="Copy command"
-          >
-            {copied ? (
-              <CheckIcon className="size-3.5 text-primary" />
-            ) : (
-              <CopyIcon className="size-3.5 text-muted-foreground" />
-            )}
-          </button>
+      <div className="flex items-center justify-between gap-3 mb-1.5">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <p className="text-xs text-muted-foreground line-clamp-1">{entry.prompt}</p>
+          {entry.downvoted && <ThumbsDownIcon className="size-3.5 text-red-500 shrink-0" />}
         </div>
+        <TooltipProvider>
+          <div
+            className="flex items-center gap-1 group-focus-within:opacity-100 group-hover:opacity-100 transition-opacity
+opacity-0"
+          >
+            {onDelete && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onDelete(entry.id)}
+                    className="shrink-0 p-1 rounded hover:bg-secondary"
+                    aria-label="Delete entry"
+                  >
+                    <TrashIcon className="size-3.5 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleCopy}
+                  className="flex-shrink-0  p-1 rounded hover:bg-secondary"
+                  aria-label="Copy command"
+                >
+                  {copied ? (
+                    <CheckIcon className="size-3.5 text-primary" />
+                  ) : (
+                    <CopyIcon className="size-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{copied ? "Copied!" : "Copy"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
       <pre className="font-mono text-xs text-foreground/80 whitespace-pre-wrap break-all">
         {entry.command}
