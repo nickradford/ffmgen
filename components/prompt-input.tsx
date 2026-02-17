@@ -46,7 +46,7 @@ export function PromptInput({
 
   return (
     <div className="relative w-full">
-      <div className="relative rounded-xl border border-border bg-card shadow-lg shadow-background/50 transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20">
+      <div className="relative rounded-xl border border-border bg-card shadow-lg shadow-background/50 transition-all focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/75">
         <input
           ref={inputRef}
           autoFocus

@@ -31,10 +31,7 @@ export function ModeToggle() {
   const Icon = mounted ? iconMap[(theme as keyof typeof iconMap) ?? "system"] : DevicesIcon;
 
   const checkIcon = (
-    <CheckIcon
-      className="ml-auto h-4 w-4 text-primary group-hover:text-primary-foreground group-focus:text-primary-foreground transition-colors"
-      weight="bold"
-    />
+    <CheckIcon className="ml-auto size-4 text-primary transition-colors" weight="bold" />
   );
 
   return (
